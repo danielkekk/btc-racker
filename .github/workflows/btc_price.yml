@@ -1,0 +1,22 @@
+name: BTC Árfolyam Lekérdezés
+
+on:
+  schedule:
+    - cron: '5 * * * *'  # minden óra 5. percén fut
+  workflow_dispatch:       # manuálisan is indítható
+
+jobs:
+  fetch-btc-price:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kód letöltése
+        uses: actions/checkout@v4
+
+      - name: Python beállítása
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: BTC árfolyam lekérdezése
+        run: python btc_price.py
