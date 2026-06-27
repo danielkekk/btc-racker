@@ -18,5 +18,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: BTC árfolyam lekérdezése
+      - name: BTC árfolyam lekérdezése és push küldése
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python btc_price.py
