@@ -1,5 +1,6 @@
 import urllib.request
 import json
+import os
 from datetime import datetime
 
 APIS = [
@@ -20,6 +21,29 @@ APIS = [
     },
 ]
 
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
+ALERT_THRESHOLD = 65_000  # USD
+
+def send_push(title, message, priority="high"):
+    if not NTFY_TOPIC:
+        print("NTFY_TOPIC nincs beállítva, push értesítés kihagyva.")
+        return
+    try:
+        req = urllib.request.Request(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=message.encode("utf-8"),
+            headers={
+                "Title": title,
+                "Priority": priority,
+                "Tags": "bitcoin,warning",
+            },
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=10)
+        print(f"Push értesítés elküldve → ntfy.sh/{NTFY_TOPIC}")
+    except Exception as e:
+        print(f"Push értesítés sikertelen: {e}")
+
 def get_btc_price():
     for api in APIS:
         try:
@@ -32,11 +56,21 @@ def get_btc_price():
 
             if change_24h is not None:
                 direction = "▲" if change_24h >= 0 else "▼"
-                change_str = f"  {direction} {change_24h:+.2f}% (24h)"
+                change_str = f"{direction} {change_24h:+.2f}% (24h)"
             else:
                 change_str = ""
 
-            print(f"[{timestamp}] BTC/USD: ${price:,.2f}{change_str}  (forrás: {api['name']})")
+            print(f"[{timestamp}] BTC/USD: ${price:,.2f}  {change_str}  (forrás: {api['name']})")
+
+            if price < ALERT_THRESHOLD:
+                print(f"FIGYELEM: Az ár ${price:,.2f} — ez ${ALERT_THRESHOLD:,} alatt van! Push küldése...")
+                send_push(
+                    title=f"BTC riasztás: ${price:,.2f}",
+                    message=f"A Bitcoin ára ${ALERT_THRESHOLD:,} alá esett!\n{change_str}\n{timestamp}\nForrás: {api['name']}",
+                )
+            else:
+                print(f"Az ár ${price:,.2f} — a ${ALERT_THRESHOLD:,} küszöb felett van, push nem szükséges.")
+
             return price
 
         except Exception as e:
