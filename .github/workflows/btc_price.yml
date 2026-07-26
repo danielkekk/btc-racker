@@ -2,7 +2,7 @@ name: BTC Árfolyam Lekérdezés
 
 on:
   schedule:
-    - cron: '5 * * * *'  # minden óra 5. percén fut
+    - cron: '5 */2 * * *'  # minden 2. óra 5. percén fut
   workflow_dispatch:       # manuálisan is indítható
 
 jobs:
