@@ -22,7 +22,7 @@ APIS = [
 ]
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
-ALERT_THRESHOLD = 63_300  # USD
+ALERT_THRESHOLD = 63_600  # USD
 
 def send_push(title, message, priority="high"):
     if not NTFY_TOPIC:
